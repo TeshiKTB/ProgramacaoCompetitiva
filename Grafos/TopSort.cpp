@@ -10,7 +10,7 @@ const int mxN = 200005;
 vector< vector<int> > g; // Precisa ser Direcional e Aciclico
 bool vis[mxN]; // Para saber se o vertice ja foi visitado
 vector<int> ordem; // Vetor com as arestas ordenadas pelo topsort
-stack<int> p;
+stack<int> p; // Stack auxiliar, guarda vertices visitados
 
 
 void dfs( int x ) {
