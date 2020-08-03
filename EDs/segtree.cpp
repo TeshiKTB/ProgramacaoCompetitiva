@@ -1,69 +1,92 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/* mercado de ações -> mudança constante nos valores
- * acao[i] == preço da ação de índice i
- * arvore[i] == valor contido no nó i da árvore \
- * assim, arvore[i] == índice da ação mais barata \
- * no intervalo representado pelo nó i
- * 
- * (no) == nó atual da recursão
- * nó atual == segmento [i, j]
- * (atualiza) o valor da ação de ind (pos) para (novo_valor) \
- * e (atualiza) a árvore de acordo com o necessário */
+#define ll long long
 
-void atualiza( int no, int i, int j, int pos, int novo_valor ) {
-    if ( i == j ) { // se pos i == pos j, nó mais baixo da árvore [i, i]
+// SegTree para uma soma no intervalo [l, r];
+struct segTree {
 
-        // fazer alterações
-        arvore[no] = i;
-        acao[pos] = novo_valor
-        return ;
+    int tam; // tamanho da segTree, deve ser a maior potencia de 2 mais proxima
+    vector<ll> s; // vetor com somas
+
+    // init segTree
+    segTree( int n ) {
+        tam = 1;
+        while ( tam < n ) tam <<= 1;
+
+        s = vector<ll>(2 * tam + 1, 0);
     }
 
-    int no_esq = 2 * no; // indice filho esquerdo
-    int no_dir = 2 * no + 1; // indice filho direito
 
-    int meio = (i + j) / 2; // indica o meio do intervalo [i, j]para a recursão
+    void atualiza( int no, int lx, int rx, int pos, int novo ) {
+        if ( lx == rx ) {
+            s[no] = novo;
+            return;
+        }
 
-    // decidindo para qual nó descer
-    if ( posicao <= meio ) atualiza(no_esq, i, meio, pos, novo_valor);
-    else atualiza(no_dir, meio + 1, j, pos, novo_valor);
+        int m = (lx + rx) / 2;
 
-    // pegando melhor resultado entre os dois nós
-    if ( acao[ arvore[no_esq] ] < acao[ arvore[no_dir] ] ) arvore[no] = arvore[no_esq];
-    else arvore[no] = arvore[no_dir];
-}
-
-
-// (consulta) -> queremos saber o valor mínimo dentro do intervalo [A, B]
-int consulta( int no, int i, int j, int A, int B ) {
-    if ( A <= i and j <= B ) { // [i, j] está contido em [A, B]
-        return arvore[no];
+        if ( pos <= m ) {
+            atualiza(2 * no + 1, lx, m, pos, novo);
+        } else {
+            atualiza(2 * no + 2, m + 1, rx, pos, novo);
+        }
+        
+        s[no] = s[2 * no + 1] + s[2 * no + 2];
     }
 
-    if ( i > B or A > j ) // [i, j] e [A, B] são disjuntos -> conjunto inválido
-        return -1;
 
-    // chamar recursão nos dois filhos e retornar melhor resposta
-    int no_esq = 2 * no;
-    int no_dir = 2 * no + 1;
-    int meio = (i + j) / 2;
+    void atualiza( int i, int nv ) {
+        atualiza(0, 0, tam, i, nv);
+    }
 
-    // resposta para cada filho
-    int resp_esq = consulta(no_esq, i, meio, A, B);
-    int resp_dir = consulta(no_dir, meio + 1, j, A, B);
 
-    // retornando melhor resposta
-    if ( resp_esq == -1 ) return resp_dir;
-    if ( resp_dir == -1 ) return resp esq;
+    ll sum( int no, int l, int r, int lx, int rx ) {
+        if ( lx >= l and rx <= r ) {
+            return s[no];
+        }
 
-    if ( acao[resp_esq] < acao[resp_dir] ) return resp_esq;
-    return resp_dir;
-}
+        if ( l > rx or r < lx ) {
+            return 0;
+        }
 
-int main() {
+        int m = (lx + rx) / 2;
 
+        return sum(2 * no + 1, l, r, lx, m) + sum(2 * no + 2, l, r, m + 1, rx);
+    }
+
+
+    ll sum( int l, int r ) {
+        return sum(0, l, r - 1, 0, tam);
+    }
+};
+
+
+int main () {
+
+
+    int n, m;
+    cin >> n >> m;
+
+    segTree st(n);
+
+    for ( int i = 0; i < n; i++ ) {
+        int x;
+        cin >> x;
+        st.atualiza(i, x);
+    }
+
+
+    for ( int i = 0; i < m; i++ ) {
+        int k, l, r;
+        cin >> k >> l >> r;
+
+        if ( k == 1 ) {
+            st.atualiza(l, r);
+        } else {
+            cout << st.sum(l, r) << endl;
+        }
+    }
 
 
     return 0;
